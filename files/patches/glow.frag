@@ -1,0 +1,1 @@
+		glow = mix( glow, RBH_noGlow.rgb, RBH_noGlow.a);

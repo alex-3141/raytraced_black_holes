@@ -1,0 +1,1 @@
+	if( RBH_count.w > 0) color = blendColor(RBH_effectColor, vec4(color, 1.0)).rgb;

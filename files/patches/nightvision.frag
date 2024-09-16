@@ -1,0 +1,1 @@
+	edge_dist = length(tex_coord_ - vec2(0.5)) * 2.0;

@@ -1,0 +1,1 @@
+	lights = clamp(lights + RBH_BHglow * 2.0, vec3(0.0), vec3(1.0));
