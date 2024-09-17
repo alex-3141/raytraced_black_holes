@@ -4,8 +4,9 @@ Raytraced Black Holes mod for the game Noita
 ![Preview image](workshop_preview_image.png)
 
 # Install
-This mod is available to download from the [Steam Workshop](https://steamcommunity.com/workshop/filedetails/?id=3331527867) (recommended).
 
-It can also be installed manually by cloning the repo into the `Noita/mods/` folder.
+### Steam
+Install from the [Steam Workshop](https://steamcommunity.com/workshop/filedetails/?id=3331527867).
 
-Please see the Steam Workshop page for more information.
+### GOG/Manual install
+Download the [latest release](https://github.com/alex-3141/raytraced_black_holes/releases/latest) and extract it into the `Noita/mods` folder.
