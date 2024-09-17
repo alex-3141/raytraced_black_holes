@@ -1,0 +1,43 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up repo name variable
+        run: echo "REPO_NAME=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+
+      - name: Zip the repository with repo name as root folder
+        run: |
+          mkdir -p $REPO_NAME
+          mv * $REPO_NAME
+          zip -r "${REPO_NAME}_${GITHUB_REF_NAME}.zip" $REPO_NAME
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.REPO_NAME }}_${GITHUB_REF_NAME}.zip
+          asset_name: ${{ env.REPO_NAME }}_${GITHUB_REF_NAME}.zip
+          asset_content_type: application/zip
