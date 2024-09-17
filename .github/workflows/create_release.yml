@@ -20,8 +20,12 @@ jobs:
       - name: Zip the repository with repo name as root folder
         run: |
           mkdir -p $REPO_NAME
-          mv * $REPO_NAME
-          zip -r "${REPO_NAME}_${GITHUB_REF_NAME}.zip" $REPO_NAME
+          mv * $REPO_NAME 2>/dev/null
+          rm $REPO_NAME/workshop.xml
+          rm $REPO_NAME/workshop_id.txt
+          rm $REPO_NAME/workshop_preview_image.png
+          rm $REPO_NAME/README.md
+          zip -r "${REPO_NAME}-${GITHUB_REF_NAME}.zip" $REPO_NAME
 
       - name: Create GitHub Release
         id: create_release
