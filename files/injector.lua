@@ -18,6 +18,8 @@ local function injectShadercode(_MaxBlackHoles, _MaxDiscs)
         local patchMainLoop = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/main_loop.frag")
         local patchLiquids = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/liquids.frag")
         local patchGlow = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/glow.frag")
+        local patchFogCoords = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/fog_coords.frag")
+        local patchSkylightCoords = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/skylight_coords.frag")
         local patchFog = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/fog.frag")
         local patchNightvision = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/nightvision.frag")
         local patchLights = ModTextFileGetContent("mods/raytraced_black_holes/files/patches/lights.frag")
@@ -78,6 +80,18 @@ local function injectShadercode(_MaxBlackHoles, _MaxDiscs)
                         "liquid_mask * cos( distortion_mult + (tex_coord.y - camera_pos.y / world_viewport_size.y ) * DISTORTION_SCALE_MULT) * DISTORTION_SCALE_MULT2"),
                 patchLiquids)
         shadercode = shaderInsertAfter(shadercode, esc("glow = max( vec3(0.0), glow - 0.008 );"), patchGlow)
+
+        -- Make these tex coords not read directly from the uniform so we can patch them
+        shadercode = shadercode:gsub('varying vec2 tex_coord_fogofwar;', 'varying vec2 __TEX_COORD_FOGOFWAR__;')
+        shadercode = shadercode:gsub('tex_coord_fogofwar', 'RBH_tex_coord_fogofwar')
+        shadercode = shadercode:gsub('varying vec2 __TEX_COORD_FOGOFWAR__;', 'varying vec2 tex_coord_fogofwar;')
+        shadercode = shaderInsertAfter(shadercode, esc("vec2 FOG_TEX_SIZE = vec2( 64.0 ) * camera_inv_zoom_ratio;"), patchFogCoords)
+
+        shadercode = shadercode:gsub('varying vec2 tex_coord_skylight;', 'varying vec2 __TEX_COORD_SKYLIGHT__;')
+        shadercode = shadercode:gsub('tex_coord_skylight', 'RBH_tex_coord_skylight')
+        shadercode = shadercode:gsub('varying vec2 __TEX_COORD_SKYLIGHT__;', 'varying vec2 tex_coord_skylight;')
+        shadercode = shaderInsertAfter(shadercode, esc("const vec2  SKY_TEX_SIZE   = vec2( 32.0 );"), patchSkylightCoords)
+
         shadercode = shaderInsertAfter(shadercode, esc("dust_amount = fog_value.g;") .. "%s+" .. esc("}"), patchFog)
         shadercode = shaderInsertAfter(shadercode, esc("float edge_dist = length(tex_coord - vec2(0.5)) * 2.0;"),
                 patchNightvision)

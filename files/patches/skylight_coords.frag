@@ -1,0 +1,1 @@
+                vec2 RBH_tex_coord_skylight = tex_coord_skylight + RBH_tex_delta * RBH_fog_scale_factor;

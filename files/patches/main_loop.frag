@@ -72,3 +72,4 @@
 	}
 
 	RBH_bloom = clamp(RBH_bloom, 0.0, 1.0);
+	vec2 RBH_tex_delta = tex_coord_ - RBH_foregroundIntersect;

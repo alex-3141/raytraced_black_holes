@@ -1,6 +1,8 @@
 #define RBH_PI  3.14159265358979323846	
 #define RBH_DEPTH 0.6
 #define MAX_DISC_SAMPLES 8
+// Magic constant blessed upon us by the gods
+#define RBH_fog_scale_factor vec2(-0.21, 0.12)
 
 uniform vec4 RBH_disc_bloom_intensity;
 uniform vec4 RBH_white_hole_bloom_intensity;
