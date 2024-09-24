@@ -1,7 +1,9 @@
 ---@diagnostic disable: undefined-global
 
 local function esc(str)
-        return str:gsub("([^%w])", "%%%1")
+        str = str:gsub("([^%w%s])", "%%%1")
+        str = str:gsub("%s+", "%%%s*")
+        return str
 end
 
 local function shaderReplace(text, line, replacement)
