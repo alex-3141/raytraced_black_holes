@@ -11,7 +11,6 @@ uniform vec4 RBH_warp_scale;
 uniform vec4 RBH_steps;
 uniform vec4 RBH_disc_threshold;
 uniform vec4 RBH_discs_enabled;
-uniform vec4 RBH_small_discs;
 uniform vec4 RBH_disk_opacity;
 uniform vec4 RBH_invert_white_holes;
 uniform vec4 RBH_max;
@@ -97,11 +96,12 @@ float angleBetweenPointAndVector(vec3 point, vec3 vector) {
 }
 
 
-#define CALC_SAFE_DIST(i) if(RBH_MAX_HOLES <= i) break;float dist##i = distance(rayPos, vec3(RBH_##i.x, RBH_##i.y, 0.0));crossedEH = crossedEH || (dist##i - RBH_##i.z <= 0.0 && RBH_##i.w < 1.0);minDist = min(minDist, dist##i);BHglow = max(BHglow, (1.0 - RBH_##i.w) * 0.1 * smoothstep(0.005, 0.0, dist##i*dist##i));whBloom += RBH_##i.w * 12.0 * (RBH_##i.z*RBH_##i.z) / (dist##i*dist##i);
+#define CALC_SAFE_DIST(i) if(RBH_MAX_HOLES <= i) break;float dist##i = distance(rayPos, vec3(RBH_##i.x, RBH_##i.y, 0.0));smallest = min(smallest, RBH_##i.z);crossedEH = crossedEH || (dist##i - RBH_##i.z <= 0.0 && RBH_##i.w < 1.0);minDist = min(minDist, dist##i);BHglow = max(BHglow, (1.0 - RBH_##i.w) * 0.1 * smoothstep(0.005, 0.0, dist##i*dist##i));whBloom += RBH_##i.w * 12.0 * (RBH_##i.z*RBH_##i.z) / (dist##i*dist##i);
 
 float findSafeStepSize(vec3 rayPos, vec3 rayVel, out bool crossedEH, inout float bloom, inout float BHglow){
 	crossedEH = false;
 	float whBloom = 0.0;
+	float smallest = 0.02;
 
 	float minDist = RBH_DEPTH / 2.0;
 
@@ -111,7 +111,7 @@ float findSafeStepSize(vec3 rayPos, vec3 rayVel, out bool crossedEH, inout float
 	}
 
 	bloom = max(bloom, pow(whBloom, 1.0 / max(RBH_white_hole_bloom_intensity.x, 0.05)));
-	return max(minDist, 0.02);
+	return max(minDist, smallest);
 }
 
 #define CALC_ACCELERATION(i) if(RBH_MAX_HOLES <= i) break;vec3 BH##i = vec3(RBH_##i.x, RBH_##i.y, 0.0) - rayPos;acceleration += (RBH_##i.z / dot(BH##i, BH##i)) * (RBH_##i.w * -RBH_invert_white_holes.x * 2.0 + 1.0) * normalize(BH##i);
@@ -216,8 +216,8 @@ void renderAccretionDiscs(inout vec4 color, inout float bloom, vec3 rayPos, vec3
 	vec3 discNormal = vec3(0.0);
 	vec3 discPos = vec3(0.0);
 	float discOpacity = 0.0;
-	float thresholdLow = RBH_disc_threshold.x - RBH_small_discs.x * 0.03;
-	float thresholdHigh = RBH_disc_threshold.y - RBH_small_discs.x * 0.035;
+	float thresholdLow = RBH_disc_threshold.x;
+	float thresholdHigh = RBH_disc_threshold.y;
 	vec3 discIntersectionPoint = vec3(0.0);
 	vec4 discColor = vec4(0.0);
 	float deflectionFactor = clamp( step(RBH_deflectionMagnitude, 6.0) * (3.0 - RBH_deflectionMagnitude), 0.0, 1.0);

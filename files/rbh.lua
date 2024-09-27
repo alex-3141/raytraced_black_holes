@@ -32,20 +32,19 @@ for i = 1, FRAME_ACC, 1 do
 end
 local FrameTime = 1 / 60
 local active_black_holes = {}
-
--- In-game black hole of r = 1.188 meters = 11.5 pixels in-game = 147 earth masses
--- 133.94 earth masses = 7.999151e+26 kg
--- 1 UV unit = 25 meters in game = 242 pixels
--- mass scale factor = 147 earths / ( 11.5 / 242 ) = 1.683e28 kg
 local EARTH = 5.972e24
 local EARTHMASSES = 147.0
 local SCALEMASS = 1.683e28
-local SCALE = 0.85
-local SCALE_FACTOR = SCALE * (EARTH * EARTHMASSES) / SCALEMASS
-local DISC_THRESHOLD_MIN = 0.03
-local DISC_THRESHOLD_MAX = 0.05
 local DEFAULT_BLACK_HOLE_SIZE = 12
 local SCALE_TO_SHADOW = true
+local VIEWPORT_SCALE
+local SCALE
+local SCALE_FACTOR
+local DISC_THRESHOLD_MIN
+local DISC_THRESHOLD_MIN_SMALL
+local DISC_THRESHOLD_MAX
+local DISC_THRESHOLD_MAX_SMALL
+local SMALL_DISCS
 
 onWorldInitialized = function()
         updateUniforms()
@@ -55,6 +54,16 @@ onWorldInitialized = function()
         GamePrint(firstRunMessage)
         bench.clearOverlay()
         ModSettingSet('raytraced_black_holes.run_benchmark', false)
+        local virtResX = MagicNumbersGetValue("VIRTUAL_RESOLUTION_X")
+        local virtResY = MagicNumbersGetValue("VIRTUAL_RESOLUTION_Y")
+        VIEWPORT_SCALE = 1 / math.min(virtResX / 427, virtResY / 242)
+        SCALE = 0.85 * VIEWPORT_SCALE
+        SCALE_FACTOR = SCALE * (EARTH * EARTHMASSES) / SCALEMASS
+        DISC_THRESHOLD_MIN = 0.03 * VIEWPORT_SCALE
+        DISC_THRESHOLD_MIN_SMALL = 0.0;
+        DISC_THRESHOLD_MAX = 0.05 * VIEWPORT_SCALE
+        DISC_THRESHOLD_MAX_SMALL = 0.015 * VIEWPORT_SCALE
+        SMALL_DISCS = ModSettingGet("raytraced_black_holes.accretion_disks_on_small_black_holes_enabled")
 end
 
 injectShadercode = function()
@@ -68,7 +77,6 @@ updateUniforms = function()
         local depth = ModSettingGet("raytraced_black_holes.scene_depth")
         local warp_scale = ModSettingGet("raytraced_black_holes.warp_scale")
         local steps = ModSettingGet("raytraced_black_holes.raymarching_steps")
-        local small_discs = ModSettingGet("raytraced_black_holes.accretion_disks_on_small_black_holes_enabled")
         local disk_opacity = ModSettingGet("raytraced_black_holes.disk_effect_opacity")
         local white_hole_bloom_intensity = ModSettingGet("raytraced_black_holes.white_hole_bloom_intensity")
         local invert_white_holes = ModSettingGet("raytraced_black_holes.invert_white_holes")
@@ -80,7 +88,6 @@ updateUniforms = function()
         GameSetPostFxParameter("RBH_warp_scale", warp_scale, 0.0, 0.0, 0.0)
         GameSetPostFxParameter("RBH_steps", steps, 0.0, 0.0, 0.0)
         GameSetPostFxParameter("RBH_disc_threshold", DISC_THRESHOLD_MIN, DISC_THRESHOLD_MAX, 0.0, 0.0)
-        GameSetPostFxParameter("RBH_small_discs", small_discs and 1.0 or 0.0, 0.0, 0.0, 0.0)
         GameSetPostFxParameter("RBH_disk_opacity", disk_opacity, 0.0, 0.0, 0.0)
         GameSetPostFxParameter("RBH_white_hole_bloom_intensity", white_hole_bloom_intensity, 0.0, 0.0, 0.0)
         GameSetPostFxParameter("RBH_invert_white_holes", invert_white_holes and 1.0 or 0.0, 0.0, 0.0, 0.0)
@@ -324,6 +331,13 @@ pushToGPU = function(active_black_holes_scaled)
         local disc_count = discs and #discs or 0
 
         GameSetPostFxParameter("RBH_count", #active_black_holes_scaled, 0, disc_count, #active_black_holes_scaled)
+        local discThresholdMin = DISC_THRESHOLD_MIN
+        local discThresholdMax = DISC_THRESHOLD_MAX
+        if(SMALL_DISCS) then
+                discThresholdMin = DISC_THRESHOLD_MIN_SMALL
+                discThresholdMax = DISC_THRESHOLD_MAX_SMALL
+        end
+        GameSetPostFxParameter("RBH_disc_threshold", discThresholdMin, discThresholdMax, 0.0, 0.0)
 end
 
 run = function()
@@ -384,9 +398,10 @@ getBlackHole = function(black_hole)
         return nil
 end
 
--- Convert world position to screen coordinates (rounded down signed ints)
 worldToShaderPos = function(x, y)
         local width, height = 427.0, 242.0
+        width = width / VIEWPORT_SCALE
+        height = height / VIEWPORT_SCALE
         local cam_x, cam_y = GameGetCameraPos()
         local sx = (x - cam_x + width / 2) / width
         local sy = (y - cam_y + height / 2) / height
