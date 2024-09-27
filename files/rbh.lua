@@ -212,8 +212,7 @@ findNewBlackHoles = function()
                                         time = 0,
                                         type = type,
                                         size = size,
-                                        seed =
-                                            seed
+                                        seed = seed
                                 })
                         patchBlackHole(id)
                 else
@@ -241,7 +240,6 @@ updateBlackHoles = function()
                                 black_hole.time = -10 -- Negatives used for fizzling
                         elseif black_hole.time > 0 then
                                 black_hole.x, black_hole.y, black_hole.rotation = EntityGetTransform(black_hole.id)
-                                -- black_hole.size = getBlackHoleSize(black_hole.id)
                         end
                 end
         end
@@ -326,8 +324,7 @@ pushToGPU = function(active_black_holes_scaled)
                                 x = black_hole.x,
                                 y = black_hole.y,
                                 mass = black_hole.mass,
-                                angle = black_hole
-                                    .seed
+                                angle = black_hole.seed
                         }
                         table.insert(discs, disc)
                 end

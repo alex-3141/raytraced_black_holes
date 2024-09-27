@@ -75,11 +75,9 @@ local function injectShadercode(_MaxBlackHoles, _MaxDiscs)
         shadercode = shaderInsertAfter(shadercode, esc("uniform sampler2D tex_debug2;"), patchDefines)
         shadercode = shaderInsertAfter(shadercode, esc("vec2 tex_coord_glow = tex_coord_glow_;"), patchMainLoop)
         shadercode = shaderReplace(shadercode,
-                esc(
-                        "liquid_mask * sin( distortion_mult + (tex_coord.x + camera_pos.x / world_viewport_size.x ) * DISTORTION_SCALE_MULT) * DISTORTION_SCALE_MULT2,") ..
+                esc("liquid_mask * sin( distortion_mult + (tex_coord.x + camera_pos.x / world_viewport_size.x ) * DISTORTION_SCALE_MULT) * DISTORTION_SCALE_MULT2,") ..
                 "%s+" ..
-                esc(
-                        "liquid_mask * cos( distortion_mult + (tex_coord.y - camera_pos.y / world_viewport_size.y ) * DISTORTION_SCALE_MULT) * DISTORTION_SCALE_MULT2"),
+                esc("liquid_mask * cos( distortion_mult + (tex_coord.y - camera_pos.y / world_viewport_size.y ) * DISTORTION_SCALE_MULT) * DISTORTION_SCALE_MULT2"),
                 patchLiquids)
         shadercode = shaderInsertAfter(shadercode, esc("glow = max( vec3(0.0), glow - 0.008 );"), patchGlow)
 
@@ -95,16 +93,10 @@ local function injectShadercode(_MaxBlackHoles, _MaxDiscs)
         shadercode = shaderInsertAfter(shadercode, esc("const vec2  SKY_TEX_SIZE   = vec2( 32.0 );"), patchSkylightCoords)
 
         shadercode = shaderInsertAfter(shadercode, esc("dust_amount = fog_value.g;") .. "%s+" .. esc("}"), patchFog)
-        shadercode = shaderInsertAfter(shadercode, esc("float edge_dist = length(tex_coord - vec2(0.5)) * 2.0;"),
-                patchNightvision)
-        shadercode = shaderInsertAfter(shadercode,
-                esc("color_fg.rgb = clamp(color_fg.rgb, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));"), patchLights)
-        shadercode = shaderInsertAfter(shadercode,
-                esc(
-                        "color.g = mix( color.g, brightness_shroom * 2.0 * color.g * (sin( time * 1.5 ) + 1.0) * 0.5 + noise.b / 64.0, drugged_color_amount);"),
-                patchShroom)
-        shadercode = shaderReplace(shadercode, esc("color.rgb = mix( color, overlay_color.rgb, overlay_color.a );"),
-                patchOverlay)
+        shadercode = shaderInsertAfter(shadercode, esc("float edge_dist = length(tex_coord - vec2(0.5)) * 2.0;"), patchNightvision)
+        shadercode = shaderInsertAfter(shadercode, esc("color_fg.rgb = clamp(color_fg.rgb, vec3(0.0,0.0,0.0), vec3(1.0,1.0,1.0));"), patchLights)
+        shadercode = shaderInsertAfter(shadercode, esc("color.g = mix( color.g, brightness_shroom * 2.0 * color.g * (sin( time * 1.5 ) + 1.0) * 0.5 + noise.b / 64.0, drugged_color_amount);"), patchShroom)
+        shadercode = shaderReplace(shadercode, esc("color.rgb = mix( color, overlay_color.rgb, overlay_color.a );"), patchOverlay)
         shadercode = shaderReplace(shadercode, esc("float a = length(tex_coord - vec2(0.5,0.5));"), patchLowHealth)
 
         ModTextFileSetContent("data/shaders/post_final.frag", shadercode)

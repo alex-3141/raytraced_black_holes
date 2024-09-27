@@ -56,14 +56,14 @@ vec4 blendColor(vec4 color, vec4 newColor){
 float rayIntersectsDisc(vec3 rayPos, vec3 rayVel, vec3 planePoint, vec3 planeNormal, out vec3 intersectionPoint) {
     float denom = dot(planeNormal, rayVel);
     float absDenom = abs(denom);
-    float denomThreshold = step(0.0001, absDenom); // 1.0 if denom > 0.0001, else 0.0
+    float denomThreshold = step(0.0001, absDenom);
 
     vec3 p0l0 = planePoint - rayPos;
-    float t = dot(p0l0, planeNormal) / (denom + (1.0 - denomThreshold)); // Avoid division by zero
-    float tValid = step(0.0, t) * step(t, 1.0); // 1.0 if 0.0 <= t <= 1.0, else 0.0
+    float t = dot(p0l0, planeNormal) / (denom + (1.0 - denomThreshold));
+    float tValid = step(0.0, t) * step(t, 1.0);
 
     intersectionPoint = rayPos + t * rayVel;
-    return denomThreshold * tValid; // 1.0 if intersection occurs, 0.0 otherwise
+    return denomThreshold * tValid;
 }
 
 vec3 getRayIntersectsPlanePoint(vec3 rayPos, vec3 rayVel, vec3 planePoint, vec3 planeNormal) {
