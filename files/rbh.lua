@@ -106,12 +106,19 @@ getBlackHoleType = function(entityID)
                 force = ComponentGetValue2(bhComp, "particle_attractor_force")
         else
                 local variableComp = EntityGetFirstComponent(entityID, "VariableStorageComponent")
-                if variableComp ~= nil and
-                    ComponentGetValue2(variableComp, "name") == "projectile_file" and
-                    -- TODO: Look for more generic way to identify white holes
-                    ComponentGetValue2(variableComp, "value_string") == "data/entities/projectiles/deck/white_hole.xml"
-                then
-                        force = -1
+                if variableComp ~= nil and ComponentGetValue2(variableComp, "name") == "projectile_file" then
+                        local value = ComponentGetValue2(variableComp, "value_string")
+                        if value == "data/entities/projectiles/deck/black_hole.xml" then
+                                force = 1
+                        elseif value == "data/entities/projectiles/deck/white_hole.xml" then
+                                force = -1
+                        else
+                                -- Is this not a black hole?
+                                return 0
+                        end
+                else
+                        -- Is this not a black hole?
+                        return 0
                 end
         end
 
@@ -189,8 +196,11 @@ findNewBlackHoles = function()
         for k, id in ipairs(black_holes) do
                 if not blackHoleIsRegistered(id) then
                         -- Add it to the list
-                        local x, y, rotation = EntityGetTransform(id)
                         local type = getBlackHoleType(id)
+                        if(type == 0) then
+                                return
+                        end
+                        local x, y, rotation = EntityGetTransform(id)
                         local size = getBlackHoleSize(id) * type
                         local seed = math.random() * 15
                         table.insert(active_black_holes,
