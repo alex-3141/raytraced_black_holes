@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-global
 
 HARDCAP = math.floor(ModSettingGet("raytraced_black_holes.hard_cap") + 0.5)
-RBH_VERSION = "1.0.2"
+RBH_VERSION = "1.0.3"
 
 local RBH = dofile_once("mods/raytraced_black_holes/files/rbh.lua")
 local translations = dofile_once("mods/raytraced_black_holes/files/translations.lua")
