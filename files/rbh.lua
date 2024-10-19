@@ -37,14 +37,19 @@ local EARTHMASSES = 147.0
 local SCALEMASS = 1.683e28
 local DEFAULT_BLACK_HOLE_SIZE = 12
 local SCALE_TO_SHADOW = true
-local VIEWPORT_SCALE
-local SCALE
+local VIEWPORT_SCALE = 1
+local SCALE = (EARTH * EARTHMASSES) / SCALEMASS
 local SCALE_FACTOR
-local DISC_THRESHOLD_MIN
-local DISC_THRESHOLD_MIN_SMALL
-local DISC_THRESHOLD_MAX
-local DISC_THRESHOLD_MAX_SMALL
+local DISC_THRESHOLD_MIN = 0.03
+local DISC_THRESHOLD_MIN_SMALL = 0.0
+local DISC_THRESHOLD_MAX = 0.05
+local DISC_THRESHOLD_MAX_SMALL = 0.015
 local SMALL_DISCS
+local VIRTUAL_RESOLUTION_X = MagicNumbersGetValue("VIRTUAL_RESOLUTION_X")
+local VIRTUAL_RESOLUTION_Y = MagicNumbersGetValue("VIRTUAL_RESOLUTION_Y")
+local RESOLUTION_X, RESOLUTION_Y = GuiGetScreenDimensions(GuiCreate())
+local ASPECT = RESOLUTION_X / RESOLUTION_Y
+local VIRTUAL_ASPECT = VIRTUAL_RESOLUTION_X / VIRTUAL_RESOLUTION_Y
 
 onWorldInitialized = function()
         updateUniforms()
@@ -54,9 +59,9 @@ onWorldInitialized = function()
         GamePrint(firstRunMessage)
         bench.clearOverlay()
         ModSettingSet('raytraced_black_holes.run_benchmark', false)
-        local virtResX = MagicNumbersGetValue("VIRTUAL_RESOLUTION_X")
-        local virtResY = MagicNumbersGetValue("VIRTUAL_RESOLUTION_Y")
-        VIEWPORT_SCALE = 1 / math.min(virtResX / 427, virtResY / 242)
+        VIRTUAL_RESOLUTION_X = MagicNumbersGetValue("VIRTUAL_RESOLUTION_X")
+        VIRTUAL_RESOLUTION_Y = MagicNumbersGetValue("VIRTUAL_RESOLUTION_Y")
+        VIEWPORT_SCALE = 1 / math.min(VIRTUAL_RESOLUTION_X / 427, VIRTUAL_RESOLUTION_Y / 242)
         SCALE = 0.85 * VIEWPORT_SCALE
         SCALE_FACTOR = SCALE * (EARTH * EARTHMASSES) / SCALEMASS
         DISC_THRESHOLD_MIN = 0.03 * VIEWPORT_SCALE
@@ -406,20 +411,23 @@ getBlackHole = function(black_hole)
 end
 
 worldToShaderPos = function(x, y)
-        local width, height = 427.0, 242.0
+        -- World height remains constant, width is based on height and aspect ratio
+        local height = VIRTUAL_RESOLUTION_Y
+        local width = VIRTUAL_RESOLUTION_Y * ASPECT
+
         width = width / VIEWPORT_SCALE
         height = height / VIEWPORT_SCALE
+
         local cam_x, cam_y = GameGetCameraPos()
-        local sx = (x - cam_x + width / 2) / width
-        local sy = (y - cam_y + height / 2) / height
+        local uv_x = (x - cam_x + width / 2) / width
+        local uv_y = (y - cam_y + height / 2) / height
 
-        sy = 1 - sy
+        uv_y = 1 - uv_y
 
-        -- Correct for aspect ratio
-        local aspect_ratio = width / height
-        sx = sx * aspect_ratio
+        -- Correct for world size aspect ratio (different from window aspect ratio)
+        uv_x = uv_x * width / height
 
-        return sx, sy
+        return uv_x, uv_y
 end
 
 return {
