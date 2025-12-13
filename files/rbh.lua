@@ -47,9 +47,6 @@ local DISC_THRESHOLD_MAX_SMALL = 0.015
 local SMALL_DISCS
 local VIRTUAL_RESOLUTION_X = MagicNumbersGetValue("VIRTUAL_RESOLUTION_X")
 local VIRTUAL_RESOLUTION_Y = MagicNumbersGetValue("VIRTUAL_RESOLUTION_Y")
-local RESOLUTION_X, RESOLUTION_Y = GuiGetScreenDimensions(GuiCreate())
-local ASPECT = RESOLUTION_X / RESOLUTION_Y
-local VIRTUAL_ASPECT = VIRTUAL_RESOLUTION_X / VIRTUAL_RESOLUTION_Y
 
 onWorldInitialized = function()
         updateUniforms()
@@ -411,17 +408,15 @@ getBlackHole = function(black_hole)
 end
 
 worldToShaderPos = function(x, y)
-        -- World height remains constant, width is based on height and aspect ratio
         local height = VIRTUAL_RESOLUTION_Y
-        local width = VIRTUAL_RESOLUTION_Y * ASPECT
+        local width = VIRTUAL_RESOLUTION_X
 
-        width = width / VIEWPORT_SCALE
-        height = height / VIEWPORT_SCALE
-
+        -- Camera is centered
         local cam_x, cam_y = GameGetCameraPos()
         local uv_x = (x - cam_x + width / 2) / width
         local uv_y = (y - cam_y + height / 2) / height
 
+        -- Shader UVs have origin at bottom left
         uv_y = 1 - uv_y
 
         -- Correct for world size aspect ratio (different from window aspect ratio)
